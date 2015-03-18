@@ -1,10 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>JavaSwitchTutorial</groupId>
-  <artifactId>JavaSwitchTutorial</artifactId>
+  <groupId>JavaClientTutorial</groupId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>JavaSwitchTutorial</name>
-  <description>Tutorial for Genability's Switch API Using the Java Client Library</description>
+  <name>JavaClientTutorial</name>
+  <properties>
+  	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
@@ -16,24 +17,69 @@
           <target>1.8</target>
         </configuration>
       </plugin>
-    </plugins>
+      <plugin>
+      	<groupId>org.codehaus.mojo</groupId>
+      	<artifactId>exec-maven-plugin</artifactId>
+      	<version>1.3.2</version>
+      	<configuration>
+      		<mainClass>com.genability.client.tutorial.JavaClientTutorial</mainClass>
+       	</configuration>
+      </plugin>
+	</plugins>
   </build>
   <dependencies>
   	<dependency>
+  		<groupId>com.genability</groupId>
+  		<artifactId>genability-client</artifactId>
+  	</dependency>
+  	<dependency>
   		<groupId>junit</groupId>
   		<artifactId>junit</artifactId>
-  		<version>4.11</version>
   		<scope>test</scope>
   	</dependency>
   	<dependency>
 		<groupId>joda-time</groupId>
 		<artifactId>joda-time</artifactId>
-		<version>2.3</version>
 	</dependency>
   	<dependency>
-  		<groupId>com.genability</groupId>
-  		<artifactId>genability-client</artifactId>
-  		<version>1.0.0-SNAPSHOT</version>
+  		<groupId>org.slf4j</groupId>
+  		<artifactId>slf4j-simple</artifactId>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.slf4j</groupId>
+  		<artifactId>jcl-over-slf4j</artifactId>
   	</dependency>
   </dependencies>
+  
+  <artifactId>JavaClientTutorial</artifactId>
+  <description>Sample application using the Java client library for Genability's API</description>
+  <dependencyManagement>
+  	<dependencies>
+  		<dependency>
+  			<groupId>com.genability</groupId>
+  			<artifactId>genability-client</artifactId>
+  			<version>1.0.0-SNAPSHOT</version>
+  		</dependency>
+  		<dependency>
+  			<groupId>junit</groupId>
+  			<artifactId>junit</artifactId>
+  			<version>4.11</version>
+  		</dependency>
+  		<dependency>
+  			<groupId>joda-time</groupId>
+  			<artifactId>joda-time</artifactId>
+  			<version>2.3</version>
+  		</dependency>
+  		<dependency>
+  			<groupId>org.slf4j</groupId>
+  			<artifactId>slf4j-simple</artifactId>
+  			<version>1.7.10</version>
+  		</dependency>
+  		<dependency>
+  			<groupId>org.slf4j</groupId>
+  			<artifactId>jcl-over-slf4j</artifactId>
+  			<version>1.7.10</version>
+  		</dependency>
+  	</dependencies>
+  </dependencyManagement>
 </project>

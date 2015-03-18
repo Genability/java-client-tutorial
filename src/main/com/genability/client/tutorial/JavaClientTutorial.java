@@ -21,7 +21,6 @@ import com.genability.client.api.service.LseService;
 import com.genability.client.types.Account;
 import com.genability.client.types.AccountAnalysis;
 import com.genability.client.types.Address;
-import com.genability.client.types.CustomerClass;
 import com.genability.client.types.Lse;
 import com.genability.client.types.PropertyData;
 import com.genability.client.types.Response;
@@ -44,16 +43,14 @@ public class JavaClientTutorial {
 	
 	public static void main(String[] args) {
 		JavaClientTutorial tutorial = new JavaClientTutorial();
-		tutorial.printWelcomeMessage();
 		
-		while (true) {
-			tutorial.displayMainMenu();
-		}
+		tutorial.printWelcomeMessage();
+		tutorial.displayMainMenu();
 	}
 	
 	public void printWelcomeMessage() {
-		System.out.println("Welcome to tutorial for the Genability API Java Client Library. Please select from the "
-				+ "following options:");
+		System.out.println("Welcome to tutorial app for the Genability API Java Client Library. "
+				+ "Please select from the following options:");
 	}
 	
 	public void displayMainMenu() {
@@ -124,7 +121,7 @@ public class JavaClientTutorial {
 		request.setAccountId(account.getAccountId());
 		Response<Tariff> response = service.getAccountTariffs(request);
 		
-		if (response.getStatus().equals(Response.STATUS_SUCCESS)) {
+		if (response.getStatus().equals(Response.STATUS_SUCCESS) && response.getResults().size() > 0) {
 			System.out.println("Confirm your tariff:");
 			Menu tariffMenu = new Menu(inputScanner);
 			List<Tariff> tariffList = response.getResults();
@@ -144,17 +141,15 @@ public class JavaClientTutorial {
 			tariffMenu.run();
 			displayEnergyConsumptionPrompt();
 		} else {		
-			System.out.println("There was an error gathering tariffs for this account. Let's start over.");
+			System.out.println("There was an error gathering tariffs for this account. Exiting...");
 			deleteAccount(account);
 		}
-		
-		
 	}
 	
 	public void displayLseMenu(List<Lse> lseList) {
-		if (lseList == null) {
+		if (lseList == null || lseList.size() == 0) {
 			// nothing else we can do here -- probably not in coverage area. start over
-			System.out.println("There was an error looking up your utility. Let's start over.");
+			System.out.println("There was an error looking up your utility. Exiting...");
 			deleteAccount(account);
 			
 			return;
@@ -230,7 +225,7 @@ public class JavaClientTutorial {
 		targetSolarOffsetSetting.setDataValue("80");
 		analysisSettings.add(targetSolarOffsetSetting);
 		
-		String errorMessage = "Looks like there was an error. Let's clean up and try again.";
+		String errorMessage = "Looks like there was an error calculating your savings. Exiting...";
 		try {
 			request.setPropertyInputs(analysisSettings);
 			AccountAnalysisService service = client.getAccountAnalysisService();
@@ -240,7 +235,8 @@ public class JavaClientTutorial {
 				AccountAnalysis analysisResults = result.getResults().get(0);
 				Map<String, BigDecimal> summary = analysisResults.getSummary();
 				
-				System.out.println(String.format("You could save up to $%s by going solar!", summary.get("netAvoidedCost")));
+				System.out.println(String.format("You could save up to $%s in the first year by going solar!",
+						summary.get("netAvoidedCost")));
 			} else {
 				System.out.println(errorMessage);
 			}			
