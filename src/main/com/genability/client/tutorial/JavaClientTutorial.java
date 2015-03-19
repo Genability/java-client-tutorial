@@ -1,6 +1,19 @@
+/*
+ * This program is a tutorial application for the Java client library for Genability's API. It
+ * goes through a simple example of calculating how much a potential customer could save by
+ * installing a solar power system.
+ * 
+ * To learn more, visit our websites:
+ * 
+ * Genability: http://genability.com/
+ * Genability Developer Network: http://developer.genability.com/
+ * Java Client Library GitHub page: https://github.com/Genability/genability-java
+ */
+
 package com.genability.client.tutorial;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.List;
@@ -17,6 +30,7 @@ import com.genability.client.api.request.GetAccountTariffsRequest;
 import com.genability.client.api.request.GetLsesRequest;
 import com.genability.client.api.service.AccountAnalysisService;
 import com.genability.client.api.service.AccountService;
+import com.genability.client.api.service.GenabilityException;
 import com.genability.client.api.service.LseService;
 import com.genability.client.types.Account;
 import com.genability.client.types.AccountAnalysis;
@@ -42,8 +56,27 @@ public class JavaClientTutorial {
 		 */
 		appId = System.getenv("APP_ID");
 		appKey = System.getenv("APP_KEY");
+		
+		// Without proper credentials, we can't do anything. Make sure that they're set before continuing.
+		if (appId == null || appKey == null || appId.isEmpty() || appKey.isEmpty()) {
+			System.out.println("No credentials available. Make sure to set your APP_ID and APP_KEY environment "
+					+ "variables before running this program. See http://developer.genability.com/documentation/"
+					+ "quickstart/ for more information.");
+			
+			System.exit(1);
+		}
+		
 		client = new GenabilityClient(appId, appKey);
 		inputScanner = new Scanner(System.in);
+		
+		// Handle Ctrl-C. We want to make sure that we always clean up the accounts that are
+		// created by this program.
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+				System.out.println("Cleaning up before exiting.");
+				cleanup();
+			}
+		});
 	}
 	
 	public static void main(String[] args) {
@@ -59,18 +92,30 @@ public class JavaClientTutorial {
 		 * 5. Finally, do the savings analysis, show the results, and exit.
 		 */
 		tutorial.printWelcomeMessage();
-		tutorial.displayMainMenu();
+		try {
+			tutorial.displayZipCodePrompt();
+		} catch(GenabilityException e) {
+			if (e.getMessage().contains("401")) {
+				System.out.println("Invalid credentials. Exiting.");
+			}
+			else {
+				System.out.println("An error occurred. Exiting.");
+			}
+		} finally {
+			tutorial.cleanup();
+		}
+		
 	}
 	
 	/*
 	 * When the user enters their ZIP code, we want to then associate them with a particular LSE. Most of the time
 	 * there will only be one, but sometimes there will be many to choose from. As with all endpoints,
-	 * making a request the LSE endpoint is a three step process -- create the request, add your parameters, and 
+	 * making a request to the LSE endpoint is a three step process -- create the request, add your parameters, and 
 	 * then send it to the service. In this case, we'll be using a GetLsesRequest and send it to the LseService. Note that
 	 * we always want to get the service instance from the client that we created earlier. That way the
 	 * APP_ID and APP_KEY parameters will be passed along without having to do any extra work.
 	 */
-	public List<Lse> getLsesByZipCode(String zipCode) {
+	private List<Lse> getLsesByZipCode(String zipCode) {
 		LseService service = client.getLseService();
 		GetLsesRequest request = new GetLsesRequest();
 
@@ -87,7 +132,7 @@ public class JavaClientTutorial {
 		}
 	}
 	
-	public void displayTariffSelectionMenu() {
+	private void displayTariffSelectionMenu() {
 		AccountService service = client.getAccountService();
 		GetAccountTariffsRequest request = new GetAccountTariffsRequest();
 		request.setAccountId(account.getAccountId());
@@ -106,13 +151,15 @@ public class JavaClientTutorial {
 			List<Tariff> tariffList = response.getResults();
 		
 			int i = 1; 
-			for (Tariff t : tariffList) {
+			for (final Tariff t : tariffList) {
 				MenuAction action = new MenuAction() {
 					public void run() {
 						setAccountProperty(account, "masterTariffId", t.getMasterTariffId().toString());
 					}
 				};
-				tariffMenu.addMenuItem(t.getTariffCode(), new Integer(i).toString(), action);
+				
+				String tariffString = t.getTariffCode() + " - " + t.getTariffName();
+				tariffMenu.addMenuItem(tariffString, new Integer(i).toString(), action);
 				
 				i++;
 			}
@@ -121,7 +168,7 @@ public class JavaClientTutorial {
 			displayEnergyConsumptionPrompt();
 		} else {		
 			System.out.println("There was an error gathering tariffs for this account. Exiting...");
-			deleteAccount(account);
+			cleanup();
 		}
 	}
 
@@ -130,15 +177,17 @@ public class JavaClientTutorial {
 	 * process: create a request, add your parameters to that request, and then send that request to
 	 * the correct service class. For the Accounts, endpoint, you'll use the AccountService class.
 	 */
-	public Account createAccountWithZipCode(String zipCode) {
+	private Account createAccountWithZipCode(String zipCode) {
 		account = new Account();
 
 		// We have to create an account in order to do a savings analysis. We're going to delete it when
 		// we're done, so there's no reason to give it an interesting name.
-		account.setAccountName("DELETE ME_" + UUID.randomUUID());
+		account.setAccountName("Genability Java Client Tutorial_" + UUID.randomUUID());
 		
 		// Some account object properties are set on the class itself. Most of them are set in its list of
 		// properties. See the documentation on accounts for more information.
+		//
+		// Accounts on the GDN: http://developer.genability.com/documentation/api-reference/account-api/account/
 		PropertyData customerClass = new PropertyData();
 		customerClass.setKeyName("customerClass");
 		customerClass.setDataValue(1);
@@ -164,16 +213,18 @@ public class JavaClientTutorial {
 	 * configurable, so you can do pretty much any kind of solar savings analysis that you want. To see
 	 * all of the details and options, go to the Savings Analysis page on the GDN.
 	 * 
+	 * Savings Analysis: http://developer.genability.com/documentation/api-reference/switch-api/savings-analysis/
+	 * 
 	 * In this tutorial, we're doing a couple of things...
 	 */
-	public void doSavingsAnalysis(Account theAccount, int targetEnergyConsumption) {
+	private void doSavingsAnalysis(Account theAccount, int targetEnergyConsumption) {
 		// First, as always, we have to create a request. In this case, the savings calculation request
 		// is called an AccountAnalysisRequest.
 		AccountAnalysisRequest request = new AccountAnalysisRequest();
 		
 		// The most important parameters of a savings analysis are the accountId and the fromDateTime. They
 		// are required. Setting the account ID tells the service which utility the analysis is in, and setting the
-		// fromDateTIme let's it know which versions of the account's tariff to use. For example, if the
+		// fromDateTime lets it know which versions of the account's tariff to use. For example, if the
 		// fromDateTime was set to 2014-01-01, then the analysis would use the rates that were active at
 		// that time. You can set a toDateTime as well, but the default analysis period is one year.
 		request.setAccountId(theAccount.getAccountId());
@@ -188,6 +239,8 @@ public class JavaClientTutorial {
 		// service can split annual usage into monthly (and further into hourly) usage based on data that
 		// we've collected from across the country. For more information on baselines, see the Typical Baseline
 		// page on the GDN.
+		//
+		// Typical Baseline: http://developer.genability.com/documentation/api-reference/tariff-api/typical-baseline/
 		PropertyData baselineSetting = new PropertyData();
 		
 		// For each setting, you have to tell the calculator which scenarios you want that setting to apply to. There
@@ -195,9 +248,10 @@ public class JavaClientTutorial {
 		// is installed. Calculations are based on the user's energy consumption only. The "solar" scenario is for the
 		// energy generated by the solar power system. This scenario is used for things like calculating the cost of a PPA
 		// over the life of the system. Finally, the "after" scenario is what the customer pays to the utility
-		// after a solar power system is installed. It does not include the cost of the solar energy, but it does include the
-		// energy that it generates. Since we don't have detailed usage (or production) data for any scenario, we're
-		// going to use a typical baseline for all three of them
+		// after a solar power system is installed. The calculation is done by subtracting the energy generated by the
+		// system from the energy consumed by the customer and then feeding that "net consumption" into the calculator.
+		// Since we don't have detailed usage (or production) data for any scenario, we're going to use a typical baseline
+		// for all three of them
 		baselineSetting.setScenarios("before,after,solar");
 		baselineSetting.setKeyName("baselineType");
 		baselineSetting.setDataValue("TYPICAL");
@@ -223,7 +277,7 @@ public class JavaClientTutorial {
 		targetSolarOffsetSetting.setDataValue("80");
 		analysisSettings.add(targetSolarOffsetSetting);
 		
-		String errorMessage = "Looks like there was an error calculating your savings. Exiting...";
+		String errorMessage = "There was an error calculating your savings. Exiting...";
 		try {
 			request.setPropertyInputs(analysisSettings);
 			AccountAnalysisService service = client.getAccountAnalysisService();
@@ -231,21 +285,22 @@ public class JavaClientTutorial {
 			
 			if (result.getStatus().equals(Response.STATUS_SUCCESS)) {
 				AccountAnalysis analysisResults = result.getResults().get(0);
-				Map<String, BigDecimal> summary = analysisResults.getSummary();
+				Map<String, BigDecimal> summary = analysisResults.getSummary();				
+				String currencyString = NumberFormat.getCurrencyInstance().format(summary.get("netAvoidedCost"));
 				
 				// The endpoint returns a lot of details about the results of the analysis. In this case,
 				// we're only interested in the customer's first year savings. You could, however, show
 				// the customer's month-by-month savings in the first year, their annual savings over
 				// 20 years, or any number of other results.
-				System.out.println(String.format("You could save up to $%s in the first year by going solar!",
-						summary.get("netAvoidedCost")));
+				System.out.println(String.format("You could save up to %s in the first year by going solar!",
+						currencyString));
 			} else {
 				System.out.println(errorMessage);
 			}			
 		} catch (Exception e) {
 			System.out.println(errorMessage);
 		} finally {
-			deleteAccount(theAccount);	
+			cleanup();
 		}		
 	}
 	
@@ -256,7 +311,7 @@ public class JavaClientTutorial {
 	 * account properties relate to a particular account's eligibility (or non-eligibility) for one or
 	 * more tariffs from their LSE.
 	 */
-	public Account setAccountProperty(Account theAccount, String keyName, String dataValue) {
+	private Account setAccountProperty(Account theAccount, String keyName, String dataValue) {
 		PropertyData data = new PropertyData();
 		data.setKeyName(keyName);
 		data.setDataValue(dataValue);
@@ -270,59 +325,49 @@ public class JavaClientTutorial {
 		
 		return null;
 	}
+	
+	public void cleanup() {
+		deleteAccount(account);
+		account = null;
+	}
 
 	// Since we don't want to save any of the data from this tutorial app, we're going to delete
-	// the account at the end.
-	public void deleteAccount(Account theAccount) {
-		DeleteAccountRequest request = new DeleteAccountRequest();
-		
-		// A hard delete removes the object from the database completely. You don't normally want to do this.
-		// The default behavior is a "soft" delete that sets the "deleted" flag on the account to "true".
-		request.setHardDelete(true);
-		request.setAccountId(theAccount.getAccountId());
-		
-		AccountService service = client.getAccountService();
-		service.deleteAccount(request);
-		theAccount = null;
+	// the account at the end (and if there's an error).
+	private void deleteAccount(Account theAccount) {
+		if (theAccount != null && theAccount.getAccountId() != null) {
+			DeleteAccountRequest request = new DeleteAccountRequest();
+
+			// A hard delete removes the object from the database completely. You don't normally want to do this.
+			// The default behavior is a "soft" delete that sets the "deleted" flag on the account to "true".
+			request.setHardDelete(true);
+			request.setAccountId(theAccount.getAccountId());
+
+			AccountService service = client.getAccountService();
+			service.deleteAccount(request);
+		}
 	}
 	
 	public void printWelcomeMessage() {
-		System.out.println("Welcome to tutorial app for the Genability API Java Client Library. "
-				+ "Please select from the following options:");
+		System.out.println("Welcome to tutorial app for the Genability API Java Client Library.");
 	}
 	
-	public void displayMainMenu() {
-		Menu mainMenu = new Menu(inputScanner);
-		mainMenu.addMenuItem("Enter your ZIP code", "1", new MenuAction() {
-			public void run() {
-				System.out.print("Enter your ZIP code: ");
-				String result = inputScanner.nextLine();
-				
-				// In order to do our savings analysis, we need to create an account -- you cannot do a savings analysis
-				// without one.
-				account = createAccountWithZipCode(result);
-				List<Lse> lseList = getLsesByZipCode(result);
-				
-				displayLseMenu(lseList);
-			}
-		});
+	private void displayZipCodePrompt() {
+		System.out.print("Enter your ZIP code: ");
+		String result = inputScanner.nextLine();
 
-		mainMenu.addMenuItem("Quit", "2", new MenuAction() {
-			public void run() {
-				System.out.println("Goodbye!");
-				inputScanner.close();
-				System.exit(0);
-			}
-		});
-		
-		mainMenu.run();
+		// In order to do our savings analysis, we need to create an account -- you cannot do a savings analysis
+		// without one.
+		account = createAccountWithZipCode(result);
+		List<Lse> lseList = getLsesByZipCode(result);
+
+		displayLseMenu(lseList);
 	}
 	
-	public void displayLseMenu(List<Lse> lseList) {
+	private void displayLseMenu(List<Lse> lseList) {
 		if (lseList == null || lseList.size() == 0) {
 			// nothing else we can do here -- probably not in coverage area. start over
 			System.out.println("There was an error looking up your utility. Exiting...");
-			deleteAccount(account);
+			cleanup();
 			
 			return;
 		}
@@ -335,7 +380,7 @@ public class JavaClientTutorial {
 			Menu lseMenu = new Menu(inputScanner);
 
 			int i = 1;
-			for(Lse l : lseList) {
+			for(final Lse l : lseList) {
 				MenuAction action = new MenuAction() {
 					public void run() {
 						account = setAccountProperty(account, "lseId", l.getLseId().toString());
@@ -352,7 +397,7 @@ public class JavaClientTutorial {
 		displayTariffSelectionMenu();
 	}
 	
-	public void displayEnergyConsumptionPrompt() {
+	private void displayEnergyConsumptionPrompt() {
 		Integer annualEnergyConsumption = null;
 		
 		while (annualEnergyConsumption == null) {
