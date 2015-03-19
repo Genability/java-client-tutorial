@@ -1,6 +1,6 @@
 #Java Client Tutorial
 ##Overview
-This is a tutorial application for the [Java client library](/Genability/genability-java) for Genability's API. The associated tutorial is [here](#). It shows a simple workflow for doing a residential savings analysis based on a person's ZIP code. It utilizes the following Genability API endpoints:
+This is a tutorial application for the [Java client library](https://github.com/Genability/genability-java) for Genability's API. The associated tutorial is [here](#). It shows a simple workflow for doing a residential savings analysis based on a person's ZIP code. It utilizes the following Genability API endpoints:
 
 1. [Load Serving Entity](http://developer.genability.com/documentation/api-reference/tariff-api/load-serving-entity/) - `/rest/public/lses`
 2. [Account](http://developer.genability.com/documentation/api-reference/account-api/account/) - `/rest/v1/accounts`
@@ -8,9 +8,11 @@ This is a tutorial application for the [Java client library](/Genability/genabil
 4. [Savings Analysis](http://developer.genability.com/documentation/api-reference/switch-api/savings-analysis/) - `/rest/v1/accounts/analysis`
 
 ##Usage
-1. Download the [Java client library](/Genability/genability-java) and install it using `mvn:install`.
-2. Download the tutorial app and install it using `mvn:install`.
-3. Run the app using `mvn exec:java`.
+1. Create a Genability App from [Genability Explorer](https://apps.genability.com/profile/organizations/current)
+2. Export your app ID and app key to `APP_ID` and `APP_KEY` environment variables, respectively.
+3. Download the [Java client library](/Genability/genability-java) and install it using `mvn:install`.
+4. Download the tutorial app and install it using `mvn:install`.
+5. Run the app using `mvn exec:java`.
 
 In summary:
 
