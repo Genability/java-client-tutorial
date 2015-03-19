@@ -65,7 +65,7 @@ public class JavaClientTutorial {
 	/*
 	 * When the user enters their ZIP code, we want to then associate them with a particular LSE. Most of the time
 	 * there will only be one, but sometimes there will be many to choose from. As with all endpoints,
-	 * making a request the LSE endpoint is a three step process -- create the request, add your parameters, and 
+	 * making a request to the LSE endpoint is a three step process -- create the request, add your parameters, and 
 	 * then send it to the service. In this case, we'll be using a GetLsesRequest and send it to the LseService. Note that
 	 * we always want to get the service instance from the client that we created earlier. That way the
 	 * APP_ID and APP_KEY parameters will be passed along without having to do any extra work.
@@ -106,7 +106,7 @@ public class JavaClientTutorial {
 			List<Tariff> tariffList = response.getResults();
 		
 			int i = 1; 
-			for (Tariff t : tariffList) {
+			for (final Tariff t : tariffList) {
 				MenuAction action = new MenuAction() {
 					public void run() {
 						setAccountProperty(account, "masterTariffId", t.getMasterTariffId().toString());
@@ -173,7 +173,7 @@ public class JavaClientTutorial {
 		
 		// The most important parameters of a savings analysis are the accountId and the fromDateTime. They
 		// are required. Setting the account ID tells the service which utility the analysis is in, and setting the
-		// fromDateTIme let's it know which versions of the account's tariff to use. For example, if the
+		// fromDateTime lets it know which versions of the account's tariff to use. For example, if the
 		// fromDateTime was set to 2014-01-01, then the analysis would use the rates that were active at
 		// that time. You can set a toDateTime as well, but the default analysis period is one year.
 		request.setAccountId(theAccount.getAccountId());
@@ -335,7 +335,7 @@ public class JavaClientTutorial {
 			Menu lseMenu = new Menu(inputScanner);
 
 			int i = 1;
-			for(Lse l : lseList) {
+			for (final Lse l : lseList) {
 				MenuAction action = new MenuAction() {
 					public void run() {
 						account = setAccountProperty(account, "lseId", l.getLseId().toString());
