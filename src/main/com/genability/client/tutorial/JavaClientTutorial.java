@@ -59,8 +59,8 @@ public class JavaClientTutorial {
 		
 		// Without proper credentials, we can't do anything. Make sure that they're set before continuing.
 		if (appId == null || appKey == null || appId.isEmpty() || appKey.isEmpty()) {
-			System.out.println("No credentials available. Make sure to set your APP_ID and APP_KEY environment "
-					+ "variables before running this program. See http://developer.genability.com/documentation/"
+			System.out.println("No credentials available. Make sure to set your APP_ID and APP_KEY environment"
+					+ " variables before running this program. See http://developer.genability.com/documentation/"
 					+ "quickstart/ for more information.");
 			
 			System.exit(1);
@@ -348,7 +348,7 @@ public class JavaClientTutorial {
 	}
 	
 	public void printWelcomeMessage() {
-		System.out.println("Welcome to tutorial app for the Genability API Java Client Library.");
+		System.out.println("Welcome to the tutorial app for the Genability API Java Client Library.");
 	}
 	
 	private void displayZipCodePrompt() {
@@ -380,7 +380,7 @@ public class JavaClientTutorial {
 			Menu lseMenu = new Menu(inputScanner);
 
 			int i = 1;
-			for(final Lse l : lseList) {
+			for (final Lse l : lseList) {
 				MenuAction action = new MenuAction() {
 					public void run() {
 						account = setAccountProperty(account, "lseId", l.getLseId().toString());
