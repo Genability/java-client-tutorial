@@ -1,6 +1,6 @@
 #Java Client Tutorial
 ##Overview
-This is a tutorial application for the [Java client library](https://github.com/Genability/genability-java) for Genability's API. The associated tutorial is [here](#), and there are lots of comments in the code that detail how to make and process requests to the API using this library.
+This is a tutorial application for the [Java client library](https://github.com/Genability/genability-java) for Genability's API. The associated tutorial is [here](http://localhost:4000/genability-java/tutorial.html), and there are lots of comments in the code that detail how to make and process requests to the API using this library.
 
 This tutorial shows a simple workflow for doing a residential savings analysis based on a person's ZIP code. It utilizes the following Genability API endpoints:
 
