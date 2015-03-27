@@ -7,7 +7,6 @@
   	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <build>
-    <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -29,10 +28,6 @@
   </build>
   <dependencies>
   	<dependency>
-  		<groupId>com.genability</groupId>
-  		<artifactId>genability-client</artifactId>
-  	</dependency>
-  	<dependency>
   		<groupId>junit</groupId>
   		<artifactId>junit</artifactId>
   		<scope>test</scope>
@@ -49,17 +44,16 @@
   		<groupId>org.slf4j</groupId>
   		<artifactId>jcl-over-slf4j</artifactId>
   	</dependency>
+  	<dependency>
+  		<groupId>com.genability</groupId>
+  		<artifactId>genability-client</artifactId>
+  	</dependency>
   </dependencies>
   
   <artifactId>JavaClientTutorial</artifactId>
   <description>Sample application using the Java client library for Genability's API</description>
   <dependencyManagement>
   	<dependencies>
-  		<dependency>
-  			<groupId>com.genability</groupId>
-  			<artifactId>genability-client</artifactId>
-  			<version>1.0.0-SNAPSHOT</version>
-  		</dependency>
   		<dependency>
   			<groupId>junit</groupId>
   			<artifactId>junit</artifactId>
@@ -79,6 +73,11 @@
   			<groupId>org.slf4j</groupId>
   			<artifactId>jcl-over-slf4j</artifactId>
   			<version>1.7.5</version>
+  		</dependency>
+  		<dependency>
+  			<groupId>com.genability</groupId>
+  			<artifactId>genability-client</artifactId>
+  			<version>1.2.0</version>
   		</dependency>
   	</dependencies>
   </dependencyManagement>
